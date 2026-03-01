@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-yaml
+  namespace: fastapi-yaml
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fastapi-yaml
+  template:
+    metadata:
+      labels:
+        app: fastapi-yaml
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/OWNER/fastapi-yaml:latest    # <-- change OWNER to your user/org, or set to your local image if using a local registry
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: LOG_LEVEL
+              value: info
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10

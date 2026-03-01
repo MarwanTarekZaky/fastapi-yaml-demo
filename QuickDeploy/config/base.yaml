@@ -1,0 +1,4 @@
+store_name: "Downtown Retail"
+timezone": "America/New_York"
+tax_rate: 0.14
+is_opne: true

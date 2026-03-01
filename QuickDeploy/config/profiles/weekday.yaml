@@ -1,0 +1,4 @@
+profile: "weekday"
+staffing_multiplier: 1.0
+active_hours_from: "hours.weekday"
+promotion_active: false

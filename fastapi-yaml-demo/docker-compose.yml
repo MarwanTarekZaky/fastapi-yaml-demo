@@ -1,0 +1,23 @@
+# Demonstartes YAML anchors (&) and aliases (*)
+# Compose v2 ignores 'version' by default, you can add 'version: "3.9"' if you want
+
+x-env: &common_env
+  - LOG_LEVEL=info
+  - UVICORN_WORKERS=2
+
+x-service: &service_common
+  build:
+    context: .
+  image: fastapi-yaml:dev
+  environment: *common_env
+
+services:
+  api:
+    <<: *service_common
+    ports:
+      - "8000:8000"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+    
+
+

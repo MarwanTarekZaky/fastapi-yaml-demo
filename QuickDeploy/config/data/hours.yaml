@@ -1,0 +1,8 @@
+hours: 
+  weekday:
+    open: "9:00"
+    close: "18:00"
+  weekend:
+    open: "10:00"
+    close: "16:00"
+  

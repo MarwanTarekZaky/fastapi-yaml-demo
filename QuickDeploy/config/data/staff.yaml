@@ -1,0 +1,8 @@
+staff: 
+  - id: 101
+    name: "Sara Ali"
+    role: "Cashier"
+    active: true
+    preferred_days: ["Monday", "Wednesday", "Friday"]
+    phone: "+1234567890"
+  

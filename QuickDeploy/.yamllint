@@ -1,0 +1,27 @@
+extends: default
+
+rules:
+  # Enforce 2-space indentation, no tabs
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+
+  # Disallow trailing spaces
+  trailing-spaces: {level: error}
+
+  # Require a newline at end of file
+  new-lines:
+    type: unix
+
+  # Allow long lines for URLs or descriptive text
+  line-length:
+    max: 140
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  # Keys should be simple and readable
+  key-duplicates: {level: error}
+  truthy:
+    allowed-values: ['true', 'false', 'True', 'False']
+    check-keys: false

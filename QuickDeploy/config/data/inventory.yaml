@@ -1,0 +1,10 @@
+inventory:
+  - sku: "A-1001"
+    name: "Blue T-Shirt"
+    price: 199.0
+    reorder_threshold: 10
+  - sku: "A-1002"
+    name: "Red T-Shirt"
+    price: 199.0
+    reorder_threshold: 15
+  
