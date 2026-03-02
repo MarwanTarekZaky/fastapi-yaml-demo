@@ -1,0 +1,549 @@
+# Codebase Export: 
+# Root: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy
+================================================================================
+
+
+================================================================================
+FILE: .pre-commit-config.yaml
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/.pre-commit-config.yaml
+================================================================================
+
+# Optional CI-lite / local hook
+
+
+================================================================================
+FILE: .yamllint
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/.yamllint
+================================================================================
+
+extends: default
+
+rules:
+  # Enforce 2-space indentation, no tabs
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+
+  # Disallow trailing spaces
+  trailing-spaces: {level: error}
+
+  # Require a newline at end of file
+  new-lines:
+    type: unix
+
+  # Allow long lines for URLs or descriptive text
+  line-length:
+    max: 140
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  # Keys should be simple and readable
+  key-duplicates: {level: error}
+  truthy:
+    allowed-values: ['true', 'false', 'True', 'False']
+    check-keys: false
+
+
+================================================================================
+FILE: README.md
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/README.md
+================================================================================
+
+# Edit instructions for staff
+tax_rate: 0.14  # VAT as a decimal (e.g., 14% = 0.14)
+
+
+================================================================================
+FILE: config/base.yaml
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/config/base.yaml
+================================================================================
+
+store_name: "Downtown Retail"
+timezone": "America/New_York"
+tax_rate: 0.14
+is_opne: true
+
+
+================================================================================
+FILE: config/data/hours.yaml
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/config/data/hours.yaml
+================================================================================
+
+hours: 
+  weekday:
+    open: "9:00"
+    close: "18:00"
+  weekend:
+    open: "10:00"
+    close: "16:00"
+  
+
+
+================================================================================
+FILE: config/data/inventory.yaml
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/config/data/inventory.yaml
+================================================================================
+
+inventory:
+  - sku: "A-1001"
+    name: "Blue T-Shirt"
+    price: 199.0
+    reorder_threshold: 10
+  - sku: "A-1002"
+    name: "Red T-Shirt"
+    price: 199.0
+    reorder_threshold: 15
+  
+
+
+================================================================================
+FILE: config/data/staff.yaml
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/config/data/staff.yaml
+================================================================================
+
+staff: 
+  - id: 101
+    name: "Sara Ali"
+    role: "Cashier"
+    active: true
+    preferred_days: ["Monday", "Wednesday", "Friday"]
+    phone: "+1234567890"
+  
+
+
+================================================================================
+FILE: config/profiles/weekday.yaml
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/config/profiles/weekday.yaml
+================================================================================
+
+profile: "weekday"
+staffing_multiplier: 1.0
+active_hours_from: "hours.weekday"
+promotion_active: false
+
+
+================================================================================
+FILE: config/profiles/weekend.yaml
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/config/profiles/weekend.yaml
+================================================================================
+
+profile: "weekend"
+staffing_multiplier: 1.2
+active_hours_from: "hours.weekend"
+promotion_active: true
+
+
+================================================================================
+FILE: export_codebase.py
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/export_codebase.py
+================================================================================
+
+"""
+Export all codebase files to a single text file for analysis.
+Excludes binary files, dependencies, and build artifacts.
+"""
+
+import os
+from pathlib import Path
+
+# Folders to skip
+SKIP_FOLDERS = {
+    'node_modules',
+    '.git',
+    '__pycache__',
+    'dist',
+    'build',
+    '.vscode',
+    '.idea',
+    'venv',
+    '.pytest_cache',
+    'coverage',
+    '.next',
+    'out',
+    '.venv',
+    'debug',  # Skip all debug folder
+}
+
+# File extensions to skip (binary and large files)
+SKIP_EXTENSIONS = {
+    '.pyc', '.pyo', '.pyd',
+    '.so', '.dll', '.dylib',
+    '.exe', '.bin',
+    '.jpg', '.jpeg', '.png', '.gif', '.ico', '.svg', '.webp',
+    '.mp4', '.avi', '.mov', '.mp3', '.wav',
+    '.zip', '.tar', '.gz', '.rar', '.7z',
+    '.pdf', '.doc', '.docx',
+    '.lock',  # package-lock.json, yarn.lock
+    '.map',   # source maps
+    '.woff', '.woff2', '.ttf', '.eot',  # fonts
+}
+
+# Specific files to skip
+SKIP_FILES = {
+    'package-lock.json',
+    'yarn.lock',
+    'poetry.lock',
+    '.DS_Store',
+    'Thumbs.db',
+    'codebase_export.txt',  # Don't include the export file itself
+}
+
+# Max file size (10 MB)
+MAX_FILE_SIZE = 10 * 1024 * 1024
+
+
+def should_skip_path(path: Path, root: Path) -> bool:
+    """Check if path should be skipped."""
+    # Check if any parent folder is in skip list
+    try:
+        relative = path.relative_to(root)
+        for part in relative.parts:
+            if part in SKIP_FOLDERS:
+                return True
+    except ValueError:
+        pass
+    
+    # Check file extension
+    if path.suffix.lower() in SKIP_EXTENSIONS:
+        return True
+    
+    # Check filename
+    if path.name in SKIP_FILES:
+        return True
+    
+    # Check file size
+    if path.is_file():
+        try:
+            if path.stat().st_size > MAX_FILE_SIZE:
+                return True
+        except:
+            return True
+    
+    return False
+
+
+def is_text_file(file_path: Path) -> bool:
+    """Check if file is likely a text file."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            f.read(512)  # Try reading first 512 bytes
+        return True
+    except (UnicodeDecodeError, PermissionError):
+        return False
+
+
+def export_codebase(root_folder: str, output_file: str):
+    """Export all code files to a single text file."""
+    root = Path(root_folder)
+    
+    if not root.exists():
+        print(f"Error: Folder {root_folder} does not exist")
+        return
+    
+    files_processed = 0
+    files_skipped = 0
+    
+    with open(output_file, 'w', encoding='utf-8') as out:
+        out.write(f"# Codebase Export: {root.name}\n")
+        out.write(f"# Root: {root.absolute()}\n")
+        out.write("=" * 80 + "\n\n")
+        
+        # Walk through all files
+        for file_path in sorted(root.rglob('*')):
+            if not file_path.is_file():
+                continue
+            
+            # Skip if needed
+            if should_skip_path(file_path, root):
+                files_skipped += 1
+                continue
+            
+            # Check if text file
+            if not is_text_file(file_path):
+                files_skipped += 1
+                continue
+            
+            # Get relative path
+            try:
+                relative_path = file_path.relative_to(root)
+            except ValueError:
+                relative_path = file_path
+            
+            # Write file info
+            out.write("\n" + "=" * 80 + "\n")
+            out.write(f"FILE: {relative_path}\n")
+            out.write(f"PATH: {file_path.absolute()}\n")
+            out.write("=" * 80 + "\n\n")
+            
+            # Write file content
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    out.write(content)
+                    if not content.endswith('\n'):
+                        out.write('\n')
+                files_processed += 1
+                print(f"✓ {relative_path}")
+            except Exception as e:
+                out.write(f"ERROR: Could not read file - {e}\n")
+                print(f"✗ {relative_path} - {e}")
+                files_skipped += 1
+            
+            out.write("\n")
+    
+    print(f"\n{'='*60}")
+    print(f"Export complete!")
+    print(f"Files processed: {files_processed}")
+    print(f"Files skipped: {files_skipped}")
+    print(f"Output file: {output_file}")
+    print(f"{'='*60}")
+
+
+if __name__ == "__main__":
+    root_folder = r"./"
+    output_file = r"codebase_export.txt"
+    
+    print(f"Exporting codebase from: {root_folder}")
+    print(f"Output file: {output_file}")
+    print(f"\nProcessing files...\n")
+    
+    export_codebase(root_folder, output_file)
+
+
+================================================================================
+FILE: tools/check.sh
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/tools/check.sh
+================================================================================
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+echo "==> YAML Lint ..."
+yamllint "$ROOT/config" || { echo "YAML lint failed"; exit 1; }
+
+echo "==> Schema & rules validation ..."
+python "$ROOT/tools/validate.py" || { echo "Validation failed"; exit 1; }
+
+echo "All checks passed ✅"
+
+
+================================================================================
+FILE: tools/requirements.txt
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/tools/requirements.txt
+================================================================================
+
+pydantic>=2.5
+pyyaml>=6.0
+
+
+================================================================================
+FILE: tools/validate.py
+PATH: /Users/marwantarekzaky/SWDev/Projects/YAML/QuickDeploy/tools/validate.py
+================================================================================
+
+#!/usr/bin/env python3
+"""
+Validates YAML configs for:
+- Types and required keys (via Pydantic models)
+- Simple business rules (e.g., price >= 0, HH:MM format, allowed roles)
+- Cross-file integrity (e.g., referenced hours key exists)
+
+Usage:
+  python tools/validate.py
+"""
+
+import re
+import sys
+from pathlib import Path
+from typing import List, Literal, Optional
+
+import yaml
+from pydantic import BaseModel, Field, ValidationError, field_validator
+
+ROOT = Path(__file__).resolve().parents[1]
+CONFIG_DIR = ROOT / "config"
+
+TIME_RE = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")  # HH:MM 24h
+
+# ----- Models -----
+
+class InventoryItem(BaseModel):
+    sku: str
+    name: str
+    price: float = Field(ge=0)
+    reorder_threshold: int = Field(ge=0)
+
+class StaffMember(BaseModel):
+    id: int
+    name: str
+    role: Literal["cashier", "stocker", "manager"]
+    active: bool
+    preferred_days: List[Literal["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]]
+    phone: Optional[str] = None
+
+class HoursBlock(BaseModel):
+    open: str
+    close: str
+
+    @field_validator("open", "close")
+    @classmethod
+    def hhmm(cls, v: str) -> str:
+        if not TIME_RE.match(v):
+            raise ValueError("must match HH:MM (24h), e.g., 09:00")
+        return v
+
+class HoursConfig(BaseModel):
+    weekday: HoursBlock
+    weekend: HoursBlock
+
+class BaseConfig(BaseModel):
+    store_name: str
+    timezone: str
+    tax_rate: float = Field(ge=0, le=1)  # e.g., 0.14 for 14%
+
+class ProfileConfig(BaseModel):
+    profile: Literal["weekday", "weekend"]
+    staffing_multiplier: float = Field(gt=0)
+    promotions_active: bool
+    # Path-like pointer resolved by the app/validator (keep YAML simple)
+    active_hours_from: Literal["hours.weekday", "hours.weekend"]
+
+# ----- Loaders -----
+
+def load_yaml(path: Path):
+    try:
+        with path.open("r", encoding="utf-8") as fh:
+            return yaml.safe_load(fh) or {}
+    except yaml.YAMLError as e:
+        raise SystemExit(f"YAML parse error in {path}:\n{e}")
+
+def assert_file(path: Path):
+    if not path.exists():
+        raise SystemExit(f"Missing expected file: {path}")
+
+# ----- Validation Orchestration -----
+
+def validate_all() -> int:
+    errors: List[str] = []
+
+    # 1) Required files exist
+    required = [
+        CONFIG_DIR / "base.yaml",
+        CONFIG_DIR / "data" / "inventory.yaml",
+        CONFIG_DIR / "data" / "staff.yaml",
+        CONFIG_DIR / "data" / "hours.yaml",
+        CONFIG_DIR / "profiles" / "weekday.yaml",
+        CONFIG_DIR / "profiles" / "weekend.yaml",
+    ]
+    for f in required:
+        try:
+            assert_file(f)
+        except SystemExit as e:
+            errors.append(str(e))
+
+    if errors:
+        print_section("Missing files", errors)
+        return 1
+
+    # 2) Load files
+    base = load_yaml(required[0])
+    inventory = load_yaml(required[1])
+    staff = load_yaml(required[2])
+    hours = load_yaml(required[3])
+    weekday = load_yaml(required[4])
+    weekend = load_yaml(required[5])
+
+    # 3) Schema validations
+    try:
+        BaseConfig(**base)
+    except ValidationError as e:
+        errors.append(format_pydantic_error("base.yaml", e))
+
+    # inventory.yaml expects a top-level `inventory: [...]`
+    inv_items = inventory.get("inventory")
+    if not isinstance(inv_items, list):
+        errors.append("inventory.yaml: `inventory` must be a list of items")
+    else:
+        for i, item in enumerate(inv_items):
+            try:
+                InventoryItem(**item)
+            except ValidationError as e:
+                errors.append(format_pydantic_error(f"inventory.yaml [index {i}]", e))
+
+    # staff.yaml expects `staff: [...]`
+    staff_items = staff.get("staff")
+    if not isinstance(staff_items, list):
+        errors.append("staff.yaml: `staff` must be a list of staff members")
+    else:
+        for i, member in enumerate(staff_items):
+            try:
+                StaffMember(**member)
+            except ValidationError as e:
+                errors.append(format_pydantic_error(f"staff.yaml [index {i}]", e))
+
+    # hours.yaml expects `hours: { weekday: {open,close}, weekend: {open,close} }`
+    hours_obj = hours.get("hours")
+    if not isinstance(hours_obj, dict):
+        errors.append("hours.yaml: `hours` must be a map")
+    else:
+        try:
+            HoursConfig(**hours_obj)
+        except ValidationError as e:
+            errors.append(format_pydantic_error("hours.yaml", e))
+
+    # profiles
+    for name, data in [("weekday.yaml", weekday), ("weekend.yaml", weekend)]:
+        try:
+            ProfileConfig(**data)
+        except ValidationError as e:
+            errors.append(format_pydantic_error(name, e))
+
+    # 4) Cross-file checks
+    errors.extend(cross_checks(base, inventory, staff, hours, weekday, weekend))
+
+    # Report
+    if errors:
+        print_section("Validation FAILED", errors)
+        return 1
+    print("Validation PASSED ✓")
+    return 0
+
+def cross_checks(base, inventory, staff, hours, weekday, weekend) -> List[str]:
+    errs = []
+
+    # Example: ensure all prices are >= reorder_threshold * 0 (already via schema for >=0)
+    # Example: ensure active_hours_from pointers resolve
+    hours_map = hours.get("hours", {})
+    for prof_name, prof in [("weekday.yaml", weekday), ("weekend.yaml", weekend)]:
+        ptr = prof.get("active_hours_from")
+        if ptr == "hours.weekday" and "weekday" not in hours_map:
+            errs.append(f"{prof_name}: active_hours_from points to missing hours.weekday")
+        if ptr == "hours.weekend" and "weekend" not in hours_map:
+            errs.append(f"{prof_name}: active_hours_from points to missing hours.weekend")
+
+    # Example: ensure at least one manager is active
+    staff_list = staff.get("staff", [])
+    if not any(s.get("role") == "manager" and s.get("active") for s in staff_list):
+        errs.append("staff.yaml: At least one active manager is required")
+
+    return errs
+
+def print_section(title: str, lines: List[str]):
+    bar = "=" * len(title)
+    print(f"\n{title}\n{bar}")
+    for line in lines:
+        print(f"- {line}")
+
+def format_pydantic_error(fname: str, e: ValidationError) -> str:
+    msgs = []
+    for err in e.errors():
+        loc = ".".join(str(p) for p in err.get("loc", []))
+        msgs.append(f"{fname}: {loc} -> {err.get('msg')}")
+    return "\n".join(msgs)
+
+if __name__ == "__main__":
+    sys.exit(validate_all())
+
